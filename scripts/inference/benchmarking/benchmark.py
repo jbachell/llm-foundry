@@ -19,6 +19,8 @@ def get_dtype(dtype: str):
         return torch.float16
     elif dtype == 'bf16':
         return torch.bfloat16
+    elif dtype == 'int8':
+        return torch.int8
     else:
         raise NotImplementedError(
             f'dtype {dtype} is not supported. ' +
@@ -98,7 +100,7 @@ def main(config: DictConfig):
                 start_time = 0
                 for i in range(config.num_batches + config.num_warmup_batches):
                     if i == config.num_warmup_batches:
-                        torch.cuda.synchronize()
+                        # torch.cuda.synchronize()
                         start_time = time.time()
                     with torch.no_grad():
                         with autocast_context:
@@ -109,7 +111,7 @@ def main(config: DictConfig):
                                            eos_token_id=None,
                                            pad_token_id=None)
 
-                torch.cuda.synchronize()
+                # torch.cuda.synchronize()
                 mean_time = (time.time() - start_time) / config.num_batches
 
                 num_output_tokens = output_length * batch_size
@@ -128,5 +130,6 @@ if __name__ == '__main__':
         yaml_config = om.load(f)
     cli_config = om.from_cli(args_list)
     config = om.merge(yaml_config, cli_config)
+    print(config)
     assert isinstance(config, DictConfig)
     main(config)
